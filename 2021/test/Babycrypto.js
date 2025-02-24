@@ -1,73 +1,71 @@
-const { ethers } = require("hardhat");
-const crypto = require("crypto");
+const BN = require('bn.js');
+const elliptic = require('elliptic');
+const keccak = require('keccak');
+const crypto = require('crypto');
+const uuid = require('uuid');
+const readline = require('readline');
 
-// Generate an ECDSA keypair
-async function genKeypair() {
-    const wallet = ethers.Wallet.createRandom();
-    return {
-        priv: wallet.privateKey,
-        pub: wallet.publicKey
-    };
+// Create ECDSA secp256k1 curve
+const ec = new elliptic.ec('secp256k1');
+
+// Generate a new ECDSA keypair
+function genKeypair() {
+    const key = ec.genKeyPair();
+    return key;
 }
 
 // Generate a random 32-byte session secret
 function genSessionSecret() {
-    return BigInt("0x" + crypto.randomBytes(32).toString("hex"));
+    const secret = new BN(crypto.randomBytes(32));
+    return secret;
 }
 
-// Hash the message using keccak256
+// Hash the message using keccak256 and truncate if necessary
 function hashMessage(msg) {
-    return BigInt(ethers.utils.keccak256(ethers.utils.toUtf8Bytes(msg)));
+    let hash = new BN(keccak('keccak256').update(msg).digest('hex'), 16);
+    const orderLength = ec.curve.n.bitLength(); 
+    const hashLength = hash.byteLength() * 8; // in bits
+    hash = hash.ushrn(Math.max(0, hashLength - orderLength));
+    return hash;
 }
 
-async function main() {
-    const flag = process.env.FLAG || "PCTF{placeholder}";
+// Create readline interface for user input
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
 
-    const { priv, pub } = await genKeypair();
-    const wallet = new ethers.Wallet(priv);
+function prompt(question) {
+    return new Promise(resolve => rl.question(question, resolve));
+}
+
+// Main execution
+(async function() {
+    const key = genKeypair();
+    const priv = key;
+    const pub = ec.keyFromPublic(key.getPublic().encode('hex'), 'hex');
     const sessionSecret = genSessionSecret();
 
     for (let i = 0; i < 4; i++) {
-        process.stdout.write("message? ");
-        const message = await readInput();
+        const message = await prompt("message? ");
         const hashed = hashMessage(message);
-
-        const signature = await wallet.signMessage(ethers.utils.arrayify(hashed));
-        const { r, s } = ethers.utils.splitSignature(signature);
-
-        console.log(`r=0x${r.slice(2)}`);
-        console.log(`s=0x${s.slice(2)}`);
+        const sig = priv.sign(hashed, {k: () => sessionSecret});
+        console.log(`r=0x${sig.r.toString(16).padStart(64, '0')}`);
+        console.log(`s=0x${sig.s.toString(16).padStart(64, '0')}`);
     }
 
-    const test = hashMessage(crypto.randomUUID());
-    console.log(`test=0x${test.toString(16).padStart(64, "0")}`);
+    const test = hashMessage(uuid.v4().replace(/-/g, ''));
+    console.log(`test=0x${test.toString(16).padStart(64, '0')}`);
 
-    process.stdout.write("r? ");
-    const r = "0x" + (await readInput());
+    const r = new BN(await prompt("r? "), 16);
+    const s = new BN(await prompt("s? "), 16);
 
-    process.stdout.write("s? ");
-    const s = "0x" + (await readInput());
-
-    const recoveredPub = ethers.utils.recoverPublicKey(ethers.utils.arrayify(test), { r, s, v: 27 });
-
-    if (recoveredPub.toLowerCase() !== pub.toLowerCase()) {
+    if (!pub.verify(test, { r, s })) {
         console.log("better luck next time");
         process.exit(1);
     }
 
-    console.log(flag);
-}
+    console.log("solved");
 
-// Function to read user input
-function readInput() {
-    return new Promise(resolve => {
-        process.stdin.once("data", data => resolve(data.toString().trim()));
-    });
-}
-
-main()
-    .then(() => process.exit(0))
-    .catch(error => {
-        console.error(error);
-        process.exit(1);
-    });
+    rl.close();
+})();

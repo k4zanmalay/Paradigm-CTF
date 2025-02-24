@@ -16,7 +16,7 @@ describe("Secure", () => {
         wallet = await Wallet.deploy();
         await wallet.allowModule(module.address);
         
-        weth = await ethers.getContractAt("WETH9", WETH);
+        weth = await ethers.getContractAt("src/secure/WETH.sol:WETH9", WETH);
         await weth.deposit({value: WANT});
         await weth.approve(wallet.address, ethers.constants.MaxUint256);
         

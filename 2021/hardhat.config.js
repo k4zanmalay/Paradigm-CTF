@@ -1,6 +1,5 @@
 require("@nomicfoundation/hardhat-chai-matchers");
 require("@nomiclabs/hardhat-ethers");
-require("dotenv").config();
 
 module.exports = {
   solidity: {

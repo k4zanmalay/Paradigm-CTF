@@ -49,7 +49,7 @@ describe("Rever", () => {
         Setup = await ethers.getContractFactory("Setup");
         setup = await Setup.deploy();
         challengeAddress = await setup.challenge();
-        challenge = await ethers.getContractAt("Challenge", challengeAddress);
+        challenge = await ethers.getContractAt("src/rever/Setup.sol:Challenge", challengeAddress);
     });
 
     it("Solved", async () => {

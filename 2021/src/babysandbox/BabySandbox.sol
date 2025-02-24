@@ -1,6 +1,7 @@
 pragma solidity 0.7.0;
 
 contract BabySandbox {
+    constructor() payable {}
     function run(address code) external payable {
         assembly {
             // if we're calling ourselves, perform the privileged delegatecall

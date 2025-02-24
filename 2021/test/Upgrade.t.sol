@@ -13,9 +13,6 @@ abstract contract FiatTokenProxyLike is ERC20Like {
     function upgradeTo(address newImplementation) external virtual;
 }
 
-//======================================================================================
-//=======================VVVVVVPLAYER CONTRACTSVVVVVV===================================
-//======================================================================================
 abstract contract UniswapV2Pair {
     function swap(
         uint256 amount0Out,
@@ -78,9 +75,6 @@ contract Bandit {
         USDC.lend(msg.sender, amountToRepay);
     }
 }
-//======================================================================================
-//=======================^^^^^^PLAYER CONTRACTS^^^^^^===================================
-//======================================================================================
 
 contract Exploit is Test {
     FiatTokenProxyLike private constant USDC = FiatTokenProxyLike(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);

@@ -1,12 +1,14 @@
 const { ethers } = require("hardhat");
 const { expect } = require("chai");
 
+const parseEther = ethers.utils.parseEther;
+
 describe("Sandbox", () => {
     before( async () => {
         [master, player] = await ethers.getSigners();
 
         Sandbox = await ethers.getContractFactory("BabySandbox");
-        sandbox = await Sandbox.deploy();
+        sandbox = await Sandbox.deploy({value: parseEther("1")});
     });
 
     it("Exploits", async () => {
@@ -21,8 +23,8 @@ describe("Sandbox", () => {
     after(async () => {
         /** SUCCESS CONDITIONS */
         expect(
-            await ethers.provider.getCode(sandbox.address)
-        ).to.equal("0x");        
+            await ethers.provider.getBalance(sandbox.address)
+        ).to.equal(0);        
     });
 });
 
