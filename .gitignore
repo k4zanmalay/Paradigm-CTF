@@ -1,0 +1,8 @@
+node_modules/
+lib/
+artifacts/
+cache/
+out/
+package-lock.json
+*.env
+*.swp
